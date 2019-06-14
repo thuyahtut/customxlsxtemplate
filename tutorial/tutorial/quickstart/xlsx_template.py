@@ -2,7 +2,7 @@ import xlsxwriter
 import os
 from datetime import datetime
 import json
-
+import inflect
 def rownumber_to_columnstring(n):
     return (n + 1)
 def columnstring_to_rownumber(n):
@@ -309,19 +309,26 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
     workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))
     worksheet = workbook.add_worksheet()
 
+    bold = workbook.add_format({'bold': True, 'underline':True})
     merge_format = workbook.add_format({'align': 'left'})
     worksheet.merge_range('A1:E1',header['qdate'], merge_format)
     worksheet.merge_range('A2:E2',"To.", merge_format)
-    worksheet.merge_range('A3:E3',header['companyname'], merge_format)
-    worksheet.merge_range('A4:E4',"Att       :{0}".format(header['customer']), merge_format)
-    worksheet.merge_range('A5:E5',"Ph        :{0}".format(header['phoneno']), merge_format)
-    worksheet.merge_range('A6:E6',"Email    :{0}".format(header['email']), merge_format)
-    worksheet.merge_range('A7:E7',"CC        :{0}".format(header['ccemail']), merge_format)
-    worksheet.merge_range('A8:E8',"Q No     :{0}".format(header['jobno']), merge_format)
-    worksheet.merge_range('A9:E9',"Subject :{0}".format(unit['subject']), merge_format)
-    d = {"<h3>":"","</h3>":"\n","<p>":"","</p>":""}
+    worksheet.merge_range('A3:E3',header['companyname'], workbook.add_format({'border':1,'align': 'left'}))
+    worksheet.merge_range('A4:E4',"Att       : {0}".format(header['customer']), merge_format)
+    worksheet.merge_range('A5:E5',"Ph        : {0}".format(header['phoneno']), merge_format)
+    worksheet.merge_range('A6:E6',"Email    : {0}".format(header['email']), merge_format)
+    worksheet.merge_range('A7:E7',"CC        : {0}".format(header['ccemail']), merge_format)
+    worksheet.merge_range('A8:E8',"Q No     : {0}".format(header['jobno']), merge_format)
+    # worksheet.merge_range('A9:E9',"Subject : {0}".format(unit['subject']), merge_format)
+    worksheet.write_rich_string(
+        'A9:E9',
+        'Subject : ',
+        bold,unit['subject']
+    )
+    d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":""}
     last = replace_all(unit['header'], d)
-    worksheet.merge_range('A11:E12',last, merge_format)
+    worksheet.merge_range('A11:E11',"Dear Sir,", workbook.add_format({'bold': True}))
+    worksheet.merge_range('A12:E12',last, merge_format)
     table_header_cell_format = workbook.add_format({'align': 'center','border':1})
     worksheet.write(12,0,"No.", table_header_cell_format)
     worksheet.write(12,1,"Description", table_header_cell_format)
@@ -335,6 +342,7 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
     total_units = 0
     total_amount = 0
     for obj in body_obj:
+        print("obj['subject']", obj['subject'])
         u = "Units" if obj['unit'] > 1 else "Unit"
         amount = obj['unit'] * obj['price']
         worksheet.write(row_id,0,table_col_num, table_data_cell_format)
@@ -562,7 +570,7 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", cell_number_format)
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'valign':'middle','align':'right','border': 1,'num_format': '#,##0'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -586,7 +594,7 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", cell_number_format)
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'valign':'middle','align':'right','border': 1,'num_format': '#,##0'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -610,7 +618,7 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", cell_number_format)
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'valign':'middle','align':'right','border': 1,'num_format': '#,##0'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -634,7 +642,7 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", cell_number_format)
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'valign':'middle','align':'right','border': 1,'num_format': '#,##0'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -642,9 +650,11 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
             row_id = row_id + 1
 
 
-        cell_format = workbook.add_format({'bold':True,'border': 2})
-        worksheet.write(row_id,0,None, workbook.add_format({'border': 2}))
+        cell_format = workbook.add_format({'bold':True,'border': 1})
+        worksheet.write(row_id,0,None, workbook.add_format({'border': 1}))
         worksheet.write(row_id,1,"Total in (Kyat)", cell_format)
+        worksheet.write(row_id,2,None, cell_format)
+        worksheet.write(row_id,3,None, cell_format)
         total_in_kyat = 0
         for item in table_body_data:
             if isinstance(table_body_data[item], dict):
@@ -678,6 +688,7 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
     return file_path
 
 def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_obj):
+    p = inflect.engine()
     header = header_obj[0]
     payment = payment_obj[0]
     #unit = unit_obj[0]
@@ -703,54 +714,75 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     worksheet.write('D6',"Our Ref: No", workbook.add_format({'valign': 'left'}))
 
 
-    d = {"<h3>":"","</h3>":"\n","<p>":"","</p>":"", "[#payment#]": "{0} Payment".format(payment['paymenttype'])}
+    d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":"", "[#payment#]": "{0} Payment".format(payment['paymenttype'])}
     head_text = replace_all(payment['header'], d)
-    worksheet.merge_range('A7:E8',head_text, workbook.add_format({'align': 'left'}))
-    # worksheet.merge_range('A2:E2',"To.", merge_format)
-    # worksheet.merge_range('A3:E3',header['companyname'], merge_format)
-    # worksheet.merge_range('A4:E4',"Att       :{0}".format(header['customer']), merge_format)
-    # worksheet.merge_range('A5:E5',"Ph        :{0}".format(header['phoneno']), merge_format)
-    # worksheet.merge_range('A6:E6',"Email    :{0}".format(header['email']), merge_format)
-    # worksheet.merge_range('A7:E7',"CC        :{0}".format(header['ccemail']), merge_format)
-    # worksheet.merge_range('A8:E8',"Q No     :{0}".format(header['jobno']), merge_format)
-    # worksheet.merge_range('A9:E9',"Subject :{0}".format(unit['subject']), merge_format)
-    # d = {"<h3>":"","</h3>":"\n","<p>":"","</p>":""}
-    # last = replace_all(unit['header'], d)
-    # worksheet.merge_range('A11:E12',last, merge_format)
-    # table_header_cell_format = workbook.add_format({'align': 'center','border':1})
-    # worksheet.write(12,0,"No.", table_header_cell_format)
-    # worksheet.write(12,1,"Description", table_header_cell_format)
-    # worksheet.write(12,2,"Qty.", table_header_cell_format)
-    # worksheet.write(12,3,"Price", table_header_cell_format)
-    # worksheet.write(12,4,"Amount", table_header_cell_format)
+    worksheet.merge_range('A7:E7',"Dear Sir,", workbook.add_format({'bold': True}))
+    worksheet.merge_range('A8:E8',head_text, merge_format)
 
-    # table_data_cell_format = workbook.add_format({'align': 'center','border':1})
-    # row_id = 13
-    # table_col_num = 1
-    # total_units = 0
-    # total_amount = 0
-    # for obj in body_obj:
-    #     u = "Units" if obj['unit'] > 1 else "Unit"
-    #     amount = obj['unit'] * obj['price']
-    #     worksheet.write(row_id,0,table_col_num, table_data_cell_format)
-    #     worksheet.write(row_id,1,obj['subject'], workbook.add_format({'align': 'left','border':1}))
-    #     worksheet.write(row_id,2,"{0}{1}".format(obj['unit'], u), table_data_cell_format)
-    #     worksheet.write(row_id,3,obj['price'], workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
-    #     worksheet.write(row_id,4, amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
-    #     total_units += obj['unit']
-    #     total_amount += amount
-    #     row_id += 1
-    #     table_col_num += 1
+    table_header_cell_format = workbook.add_format({'align': 'center','border':1})
+    worksheet.write(8,0,"No.", table_header_cell_format)
+    worksheet.write(8,1,"Description", table_header_cell_format)
+    worksheet.write(8,2,"Qty.", table_header_cell_format)
+    worksheet.write(8,3,"Price", table_header_cell_format)
+    worksheet.write(8,4,"Amount", table_header_cell_format)
 
-    # #Summary Row
-    # u = "Units" if total_units > 1 else "Unit"
-    # worksheet.write(row_id,0, None, table_data_cell_format)
-    # worksheet.write(row_id,1,"Total in (Kyat)", table_data_cell_format)
-    # worksheet.write(row_id,2, "{0}{1}".format(total_units, u), table_data_cell_format)
-    # worksheet.write(row_id,3, None, table_data_cell_format)
-    # worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
-    # row_id += 1
+    table_data_cell_format = workbook.add_format({'align': 'center','border':1})
+    row_id = 9
+    table_col_num = 1
+    total_units = 0
+    total_amount = 0
+    for obj in body_obj:
+        u = "Units" if obj['unit'] > 1 else "Unit"
+        amount = obj['unit'] * obj['price']
+        worksheet.write(row_id,0,table_col_num, table_data_cell_format)
+        worksheet.write(row_id,1,obj['subject'], workbook.add_format({'align': 'left','border':1}))
+        worksheet.write(row_id,2,"{0}{1}".format(obj['unit'], u), table_data_cell_format)
+        worksheet.write(row_id,3,obj['price'], workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+        worksheet.write(row_id,4, amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+        total_units += obj['unit']
+        total_amount += amount
+        row_id += 1
+        table_col_num += 1
 
+    #Summary Row
+    u = "Units" if total_units > 1 else "Unit"
+    worksheet.write(row_id,0, None, table_data_cell_format)
+    worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
+    worksheet.write(row_id,2, "{0}{1}".format(total_units, u), table_data_cell_format)
+    worksheet.write(row_id,3, None, table_data_cell_format)
+    worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+    row_id += 1
+    worksheet.write(row_id,0,None, table_data_cell_format)
+    worksheet.write(row_id,1,"first Payment for Total in (Kyat) (20%)", workbook.add_format({'align': 'left','border':1}))
+    worksheet.write(row_id,2,None, table_data_cell_format)
+    worksheet.write(row_id,3,None, table_data_cell_format)
+    first_payment = (total_amount * 20)/100
+    print('first_payment',first_payment)
+    worksheet.write(row_id,4,first_payment, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+    row_id += 1
+
+    col_row_num = rownumber_to_columnstring(row_id)
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"(Kyat: {0})".format(p.number_to_words(first_payment)), workbook.add_format({'align': 'left','bold':"True"}))
+    col_row_num += 1
+    d = {"<p>":"","</p>":""}
+    footer_text = replace_all(payment['footer'], d)
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),footer_text, workbook.add_format({'align': 'left'}))
+    col_row_num += 1
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"With Regard,", workbook.add_format({'align': 'left'}))
+    col_row_num += 4
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"-------------------------------", workbook.add_format({'align': 'left'}))
+    col_row_num += 1
+
+    signatureid = payment['signatureid']
+    signature_id_data = [x for x in signature_obj if x["id"] == signatureid != None][0]
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"{0} ({1})".format(signature_id_data['name'], signature_id_data['phoneno']), workbook.add_format({'align': 'left'}))
+    col_row_num += 1
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),signature_id_data['designation'], workbook.add_format({'align': 'left'}))
+    col_row_num += 1
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),signature_id_data['companyname'], workbook.add_format({'align': 'left'}))
+    col_row_num += 1
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),header['createdby'], workbook.add_format({'align': 'left'}))
+    col_row_num += 1
     # #Extra Header
     # col_row_num = rownumber_to_columnstring(row_id)
     # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),'Price Validity       :    {0}    '.format(unit['validity']), merge_format)
@@ -958,7 +990,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", cell_number_format)
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'align':'right'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -982,7 +1014,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", cell_number_format)
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'align':'right'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1006,7 +1038,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", cell_number_format)
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'align':'right'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1030,7 +1062,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", cell_number_format)
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'align':'right'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1038,9 +1070,11 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             row_id = row_id + 1
 
 
-        cell_format = workbook.add_format({'bold':True,'border': 2})
-        worksheet.write(row_id,0,None, workbook.add_format({'border': 2}))
+        cell_format = workbook.add_format({'bold':True,'border': 1})
+        worksheet.write(row_id,0,None, workbook.add_format({'border': 1}))
         worksheet.write(row_id,1,"Total in (Kyat)", cell_format)
+        worksheet.write(row_id,2,None, workbook.add_format({'border': 1}))
+        worksheet.write(row_id,3,None, workbook.add_format({'border': 1}))
         total_in_kyat = 0
         for item in table_body_data:
             if isinstance(table_body_data[item], dict):
