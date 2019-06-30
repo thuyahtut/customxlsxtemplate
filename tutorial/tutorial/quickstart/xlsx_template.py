@@ -696,30 +696,48 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     #unit = unit_obj[0]
     today = datetime.today().strftime('%d-%B-%y')
     filename = '/home/thuya/OUTSOURCE/test/invoice_{0}'.format(datetime.now())
-    workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))
+    workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))    
     worksheet = workbook.add_worksheet()
+    format = workbook.add_format()
+    format.set_font_name('Times New Roman')
     row_id = 20
     merge_format = workbook.add_format({'align': 'left'})
+    bold = workbook.add_format({'bold': True})
     col_row_num = rownumber_to_columnstring(row_id)
     worksheet.merge_range('A1:E1',"INVOICE", workbook.add_format({'align': 'center'}))
-    worksheet.merge_range('A3:B5',"To.\n{0}".format(header['companyname']), workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.merge_range('A3:B5', None)
+    worksheet.write_rich_string(
+        'A3:B5',
+        'To.\n',
+        bold,header['companyname']
+    )
     worksheet.write('C3',"Date", workbook.add_format({'valign': 'left', 'border':1}))
-    worksheet.write('D3', invoice_list['invoice_date'], workbook.add_format({'valign': 'left', 'border':1}))
+    invoice_date = datetime.strptime(invoice_list['invoice_date'], '%Y-%M-%d').strftime('%b %d,%Y')
+    worksheet.write('D3', invoice_date, workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('C4',"Your Ref: No", workbook.add_format({'valign': 'left', 'border':1}))
-    worksheet.write('D4',"Order by ".format(header['customer']), workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D4',"Order by {0}".format(header['customer']), workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('C5',"Our Ref: No", workbook.add_format({'valign': 'left', 'border':1}))
-    worksheet.write('D5',invoice_list['invNo'], workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D5',invoice_list['invNo'], workbook.add_format({'valign': 'left', 'border':1, 'bold': True }))
 
-    worksheet.write('A6',"Att", workbook.add_format({'valign': 'left', 'border':1}))
-    worksheet.write('B6', header['companyname'], workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('A6',"Att:", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('B6', header['companyname'], workbook.add_format({'valign': 'left', 'border':1, 'bold': True}))
     worksheet.write('C6',"Subject", workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('D6', payment['subject'], workbook.add_format({'valign': 'left', 'border':1}))
 
 
-    d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":"", "[#payment#]": "{0} Payment".format(invoice_list['paymenttype'].capitalize())}
+    d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":""}
     head_text = replace_all(invoice_list['header'], d)
     worksheet.merge_range('A8:E8',"Dear Sir,", workbook.add_format({'bold': True}))
-    worksheet.merge_range('A9:E9',head_text, merge_format)
+    head_start = head_text.split("[#payment#]")[0]
+    head_mid = "{0} Payment".format(invoice_list['paymenttype'].capitalize())
+    head_end = head_text.split("[#payment#]")[1]
+    worksheet.merge_range('A9:E9',None)
+    worksheet.write_rich_string(
+        'A9:E9',
+        head_start,
+        bold,head_mid,
+        head_end
+    )
 
     table_header_cell_format = workbook.add_format({'align': 'center','border':1})
     worksheet.write(10,0,"No.", table_header_cell_format)
@@ -736,7 +754,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     for obj in body_obj:
         u = "Units" if obj['unit'] > 1 else "Unit"
         amount = obj['unit'] * obj['price']
-        worksheet.write(row_id,0,table_col_num, table_data_cell_format)
+        worksheet.write(row_id,0,'{0}.'.format(table_col_num), table_data_cell_format)
         worksheet.write(row_id,1,obj['subject'], workbook.add_format({'align': 'left','border':1}))
         worksheet.write(row_id,2,"{0}{1}".format(obj['unit'], u), table_data_cell_format)
         worksheet.write(row_id,3,obj['price'], workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
@@ -750,7 +768,11 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     u = "Units" if total_units > 1 else "Unit"
     worksheet.write(row_id,0, None, table_data_cell_format)
     worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
-    if "discount" in payment and payment['discount'] > 0 or "manual_discount" in payment and payment['manual_discount'] > 0:
+    if "discount" in payment and payment['discount'] > 0:
+        worksheet.write(row_id,2, None, table_data_cell_format)
+    elif "manual_discount" in payment and payment['manual_discount'] > 0:
+        worksheet.write(row_id,2, None, table_data_cell_format)
+    elif "tax" in payment and payment['tax'] > 0:
         worksheet.write(row_id,2, None, table_data_cell_format)
     else:
         worksheet.write(row_id,2, "{0}{1}".format(total_units, u), table_data_cell_format)
@@ -864,7 +886,13 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
         table_body_data = panel
         row_id += 1
         col_row_num = rownumber_to_columnstring(row_id+1)
-        worksheet.merge_range('A{}:E{}'.format(col_row_num,col_row_num),'{0}. {1}'.format(loop_count,table_body_data['subject']), workbook.add_format({'bold': True,'border': 1, 'align':'left'}))
+        panel_title_format = workbook.add_format({'bold': True,'border': 1, 'align':'left','underline':True})
+        worksheet.merge_range('A{}:E{}'.format(col_row_num,col_row_num),None)
+        worksheet.write_rich_string(
+            'A{}:E{}'.format(col_row_num,col_row_num),
+            bold,'{0}.'.format(str(loop_count)),
+            panel_title_format,table_body_data['subject']
+        )
         row_id = columnstring_to_rownumber(col_row_num)
         loop_count += 1
 
@@ -878,8 +906,12 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
         row_id += 1
 
         num_column = 0
-        number_col_bold = workbook.add_format({'bold': True,'border': 1,'align':'center'})
-        cell_number_format = workbook.add_format({'bold':True,'border': 1,'num_format': '#,##0'})
+        number_col_bold = workbook.add_format({'border': 1})
+        number_col_bold.set_align('center')
+        number_col_bold.set_align('vcenter')
+        cell_number_format = workbook.add_format({'border': 1,'num_format': '#,##0'})
+        cell_number_format.set_align('center')
+        cell_number_format.set_align('vcenter')
         """Enclosure Start"""
         if "enclosure" in table_body_data and table_body_data['enclosure']['totalwithp'] > 0:
             unit = 1
@@ -887,20 +919,21 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,0, '{0}{1}'.format(num_column + 1,'.'), number_col_bold)
 
             """ Panel Enclosure Description """
-            PED = 'Panel Enclosure:\nSize : {0}mmH x {1}mmW x {2}mmD\nType : {3}\nMaterial : {4}\nPaint : {5}\nColour : {6}\nStandard : {7}'.format(
+            PED = 'Size : {0}mmH x {1}mmW x {2}mmD\nType : {3}\nMaterial : {4}\nPaint : {5}\nColour : {6}\nStandard : {7}'.format(
                 row_data['height'],row_data['width'],row_data['depth']['name'],row_data['type'],
                 row_data['material'],row_data['paint'],row_data['colour'],row_data['standard']
                 )
-            # bold = workbook.add_format({'bold': True, 'underline':True})
-            # col_row_num = rownumber_to_columnstring(row_id)
-            # worksheet.write_rich_string(
-            #     'B{}:E{}'.format(col_row_num,col_row_num),
-            #     'aa',
-            #     bold,"Panel Enclosure"
-            # )
-            # row_id = columnstring_to_rownumber(col_row_num)                
-            worksheet.write(row_id,1, PED,workbook.add_format({'border': 1}))
-            worksheet.write(row_id,2, "{0}{1}".format(unit, "Unit"),  workbook.add_format({'border': 1,'align':'center'}))
+            bold = workbook.add_format({'bold': True})
+            col_row_num = rownumber_to_columnstring(row_id)
+            worksheet.write_rich_string(
+                'B{}'.format(col_row_num,col_row_num),
+                ' ',
+                bold,"Panel Enclosure :\n",
+                PED
+            )
+            row_id = columnstring_to_rownumber(col_row_num)                
+            #worksheet.write(row_id,1, PED,workbook.add_format({'border': 1}))
+            worksheet.write(row_id,2, "{0}{1}".format(unit, "Unit"),  number_col_bold)
             worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
             worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
             num_column = num_column + 1
@@ -930,8 +963,17 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
                 for item in row_data["items"]:
                     UOM = ' {0}s'.format(item['uom']) if item['uom'] == 'No' and int(round(float(item['qty']))) > 1 else ' {0}'.format(item['uom'])
                     BBD = BBD  + ' -  ' + item['name'] + ' --- ' + item['qty'] + UOM + ' x ' + '{:1,}'.format(int(round(float(item['price'])))) +'\n'
-          
-            worksheet.write(row_id,1, BBD[:-1],workbook.add_format({'border': 1}))
+            
+            bold = workbook.add_format({'bold': True})
+            col_row_num = rownumber_to_columnstring(row_id)
+            worksheet.write_rich_string(
+                'B{}'.format(col_row_num,col_row_num),
+                ' ',
+                bold,"Panel Enclosure :\n",
+                PED
+            )
+            row_id = columnstring_to_rownumber(col_row_num)              
+            #worksheet.write(row_id,1, BBD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
             worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1026,7 +1068,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'align':'right'}))
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'border': 1,'align':'right'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1050,7 +1092,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'align':'right'}))
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'border': 1,'align':'right'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1075,7 +1117,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'align':'right'}))
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'border': 1,'align':'right'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1099,7 +1141,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
-                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'align':'right'}))
+                worksheet.write(row_id,4, "Customer Supply", workbook.add_format({'border': 1,'align':'right'}))
             else:
                 worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
                 worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
