@@ -711,9 +711,9 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     worksheet.write('D5',invoice_list['invNo'], workbook.add_format({'valign': 'left', 'border':1}))
 
     worksheet.write('A6',"Att", workbook.add_format({'valign': 'left', 'border':1}))
-    worksheet.write('B6',"-", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('B6', header['companyname'], workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('C6',"Subject", workbook.add_format({'valign': 'left', 'border':1}))
-    worksheet.write('D6',"Our Ref: No", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D6', payment['subject'], workbook.add_format({'valign': 'left', 'border':1}))
 
 
     d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":"", "[#payment#]": "{0} Payment".format("payment['paymenttype']")}
@@ -806,14 +806,21 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
         total_amount = total_amount - manual_discount
         row_id += 1
 
-    #Summary Row
-    u = "Units" if total_units > 1 else "Unit"
-    worksheet.write(row_id,0, None, table_data_cell_format)
-    worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
-    worksheet.write(row_id,2, "{0}{1}".format(total_units, u), table_data_cell_format)
-    worksheet.write(row_id,3, None, table_data_cell_format)
-    worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
-    row_id += 1
+        worksheet.write(row_id,0, None, table_data_cell_format)
+        worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
+        worksheet.write(row_id,2, None, table_data_cell_format)
+        worksheet.write(row_id,3, None, table_data_cell_format)
+        worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+        row_id += 1
+
+    # #Summary Row
+    # u = "Units" if total_units > 1 else "Unit"
+    # worksheet.write(row_id,0, None, table_data_cell_format)
+    # worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
+    # worksheet.write(row_id,2, "{0}{1}".format(total_units, u), table_data_cell_format)
+    # worksheet.write(row_id,3, None, table_data_cell_format)
+    # worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+    # row_id += 1
 
     """first Payment for Total in (Kyat) (34%)"""
     worksheet.write(row_id,0, None, table_data_cell_format)
