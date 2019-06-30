@@ -703,6 +703,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     row_id = 20
     merge_format = workbook.add_format({'align': 'left'})
     bold = workbook.add_format({'bold': True})
+    empty_format = workbook.add_format({})
     col_row_num = rownumber_to_columnstring(row_id)
     worksheet.merge_range('A1:E1',"INVOICE", workbook.add_format({'align': 'center'}))
     worksheet.merge_range('A3:B5', None)
@@ -927,9 +928,8 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             col_row_num = rownumber_to_columnstring(row_id)
             worksheet.write_rich_string(
                 'B{}'.format(col_row_num,col_row_num),
-                ' ',
                 bold,"Panel Enclosure :\n",
-                PED
+                empty_format, PED
             )
             row_id = columnstring_to_rownumber(col_row_num)                
             #worksheet.write(row_id,1, PED,workbook.add_format({'border': 1}))
@@ -959,20 +959,17 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
 
             if "items" in row_data:
                 cell_format = workbook.add_format({'text_wrap':1,'valign':'top', 'border': 2})
-                BBD = '{0}\n'.format(row_data['label'])
+                BBD = ''
                 for item in row_data["items"]:
                     UOM = ' {0}s'.format(item['uom']) if item['uom'] == 'No' and int(round(float(item['qty']))) > 1 else ' {0}'.format(item['uom'])
                     BBD = BBD  + ' -  ' + item['name'] + ' --- ' + item['qty'] + UOM + ' x ' + '{:1,}'.format(int(round(float(item['price'])))) +'\n'
-            
-            bold = workbook.add_format({'bold': True})
-            col_row_num = rownumber_to_columnstring(row_id)
-            worksheet.write_rich_string(
-                'B{}'.format(col_row_num,col_row_num),
-                ' ',
-                bold,"Panel Enclosure :\n",
-                PED
-            )
-            row_id = columnstring_to_rownumber(col_row_num)              
+                col_row_num = rownumber_to_columnstring(row_id)
+                worksheet.write_rich_string(
+                    'B{}'.format(col_row_num,col_row_num),
+                    bold, "{0}\n".format(row_data['label']),
+                    empty_format,BBD[:-1]
+                )
+                row_id = columnstring_to_rownumber(col_row_num)              
             #worksheet.write(row_id,1, BBD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
@@ -1000,11 +997,18 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             """ Insulator Description """
             if "items" in row_data:
                 cell_format = workbook.add_format({'text_wrap':1,'valign':'top', 'border': 2})
-                ITD = '{0}\n'.format(row_data['label'])
+                ITD = ''
                 for item in row_data["items"]:
                     UOM = ' {0}s'.format(item['uom']) if item['uom'] == 'No' and int(round(float(item['qty']))) > 1 else ' {0}'.format(item['uom'])
                     ITD = ITD  + ' -  ' + item['name'] + ' --- ' + str(item['qty']) + UOM + ' x ' + '{:1,}'.format(int(round(float(item['price'])))) +'\n'
-            worksheet.write(row_id,1, ITD[:-1],workbook.add_format({'border': 1}))
+                col_row_num = rownumber_to_columnstring(row_id)
+                worksheet.write_rich_string(
+                    'B{}'.format(col_row_num,col_row_num),
+                    bold, "{0}\n".format(row_data['label']),
+                    empty_format,ITD[:-1]
+                )
+                row_id = columnstring_to_rownumber(col_row_num) 
+            #worksheet.write(row_id,1, ITD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
             worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1020,11 +1024,18 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             """ Metering Description """
             if "items" in row_data:
                 cell_format = workbook.add_format({'text_wrap':1,'valign':'top', 'border': 2})
-                MTD = '{0}\n'.format(row_data['label'])
+                MTD = ''
                 for item in row_data["items"]:
                     UOM = ' {0}s'.format(item['uom']) if item['uom'] == 'No' and int(round(float(item['qty']))) > 1 else ' {0}'.format(item['uom'])
                     MTD = MTD  + ' -  ' + item['name'] + ' --- ' + str(item['qty']) + UOM + ' x ' + str(item['price']) +'\n'
-            worksheet.write(row_id,1, MTD[:-1],workbook.add_format({'border': 1}))
+                col_row_num = rownumber_to_columnstring(row_id)
+                worksheet.write_rich_string(
+                    'B{}'.format(col_row_num,col_row_num),
+                    bold, row_data['label'],
+                    empty_format,MTD[:-1]
+                )
+                row_id = columnstring_to_rownumber(col_row_num)             
+            #worksheet.write(row_id,1, MTD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
             worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1040,10 +1051,17 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             """ Protection & Controls Description """
             if "items" in row_data and len(row_data["items"]) > 0:
                 cell_format = workbook.add_format({'text_wrap':1,'valign':'top', 'border': 2})
-                PCD = '{0}\n'.format(row_data['label'])
+                PCD = ''
                 for item in row_data["items"]:
                     PCD = PCD  + ' -  ' + item['name'] + ' --- ' + str(item['qty']) + ' Set x ' + str(item['price']) +'\n'
-            worksheet.write(row_id,1, PCD[:-1],workbook.add_format({'border': 1}))
+                col_row_num = rownumber_to_columnstring(row_id)
+                worksheet.write_rich_string(
+                    'B{}'.format(col_row_num,col_row_num),
+                    bold, "{0}\n".format(row_data['label']),
+                    empty_format,PCD[:-1]
+                )
+                row_id = columnstring_to_rownumber(col_row_num)             
+            #worksheet.write(row_id,1, PCD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
             worksheet.write(row_id,4, (unit * row_data['totalwithp']), cell_number_format)
@@ -1060,11 +1078,18 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             """ Material List Description """
             if "items" in row_data:
                 cell_format = workbook.add_format({'text_wrap':1,'valign':'top', 'border': 2})
-                MLD = '{0}\n'.format(row_data['label'])
+                MLD = ''
                 for item in row_data["items"]:
                     UOM = ' {0}s'.format('No') if int(round(float(item['qty']))) > 1 else ' {0}'.format('No')
                     MLD = MLD  + ' -  ' + item['brandname'] + ' - ' + item['description'] + ' --- ' + str(item['qty']) + UOM + ' x ' + str(item['price']) +'\n'
-            worksheet.write(row_id,1, MLD[:-1],workbook.add_format({'border': 1}))
+                col_row_num = rownumber_to_columnstring(row_id)
+                worksheet.write_rich_string(
+                    'B{}'.format(col_row_num,col_row_num),
+                    bold, "{0}\n".format(row_data['label']),
+                    empty_format,MLD[:-1]
+                )
+                row_id = columnstring_to_rownumber(col_row_num)             
+            #worksheet.write(row_id,1, MLD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
@@ -1088,7 +1113,14 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
                 for item in row_data["items"]:
                     UOM = ' {0}s'.format('No') if int(round(float(item['qty']))) > 1 else ' {0}'.format('No')
                     EMLD = EMLD  + ' -  ' + item['brandname'] + '  -- ' + item['description'] + ' --- ' + str(item['qty']) + UOM +'\n'
-            worksheet.write(row_id,1, EMLD[:-1],workbook.add_format({'border': 1}))
+                col_row_num = rownumber_to_columnstring(row_id)
+                worksheet.write_rich_string(
+                    'B{}'.format(col_row_num,col_row_num),
+                    bold, "{0}\n".format(row_data['label']),
+                    empty_format,EMLD[:-1]
+                )
+                row_id = columnstring_to_rownumber(col_row_num)             
+            #worksheet.write(row_id,1, EMLD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
@@ -1113,7 +1145,14 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
                 for item in row_data["items"]:
                     UOM = ' {0}s'.format('No') if int(round(float(item['qty']))) > 1 else ' {0}'.format('No')
                     EMLD = EMLD  + ' -  ' + item['brandname'] + '  -- ' + item['description'] + ' --- ' + str(item['qty']) + UOM +'\n'
-            worksheet.write(row_id,1, EMLD[:-1],workbook.add_format({'border': 1}))
+                col_row_num = rownumber_to_columnstring(row_id)
+                worksheet.write_rich_string(
+                    'B{}'.format(col_row_num,col_row_num),
+                    bold, "{0}\n".format(row_data['label']),
+                    empty_format,EMLD[:-1]
+                )
+                row_id = columnstring_to_rownumber(col_row_num) 
+            #worksheet.write(row_id,1, EMLD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
@@ -1137,7 +1176,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
                 for item in row_data["items"]:
                     UOM = ' {0}s'.format('No') if int(round(float(item['qty']))) > 1 else ' {0}'.format('No')
                     EMLD = EMLD  + ' -  ' + item['brandname'] + '  -- ' + item['description'] + ' --- ' + str(item['qty']) + UOM +'\n'
-            worksheet.write(row_id,1, EMLD[:-1],workbook.add_format({'border': 1}))
+            #worksheet.write(row_id,1, EMLD[:-1],workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Lot"),  workbook.add_format({'border': 1,'align':'center'}))
             if row_data['customersupply'] == True:
                 worksheet.write(row_id,3, None,cell_number_format)
