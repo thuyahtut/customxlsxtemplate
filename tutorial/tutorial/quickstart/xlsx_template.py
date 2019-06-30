@@ -716,8 +716,8 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     worksheet.write('D6', payment['subject'], workbook.add_format({'valign': 'left', 'border':1}))
 
 
-    d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":"", "[#payment#]": "{0} Payment".format("payment['paymenttype']")}
-    head_text = replace_all(payment['header'], d)
+    d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":"", "[#payment#]": "{0} Payment".format(invoice_list['paymenttype'].capitalize())}
+    head_text = replace_all(invoice_list['header'], d)
     worksheet.merge_range('A8:E8',"Dear Sir,", workbook.add_format({'bold': True}))
     worksheet.merge_range('A9:E9',head_text, merge_format)
 
@@ -750,7 +750,10 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     u = "Units" if total_units > 1 else "Unit"
     worksheet.write(row_id,0, None, table_data_cell_format)
     worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
-    worksheet.write(row_id,2, None, table_data_cell_format)
+    if "discount" in payment and payment['discount'] > 0 or "manual_discount" in payment and payment['manual_discount'] > 0:
+        worksheet.write(row_id,2, None, table_data_cell_format)
+    else:
+        worksheet.write(row_id,2, "{0}{1}".format(total_units, u), table_data_cell_format)
     worksheet.write(row_id,3, None, table_data_cell_format)
     worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
     row_id += 1
@@ -808,7 +811,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
 
         worksheet.write(row_id,0, None, table_data_cell_format)
         worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
-        worksheet.write(row_id,2, None, table_data_cell_format)
+        worksheet.write(row_id,2, "{0}{1}".format(total_units, u), table_data_cell_format)
         worksheet.write(row_id,3, None, table_data_cell_format)
         worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
         row_id += 1
@@ -824,7 +827,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
 
     """first Payment for Total in (Kyat) (34%)"""
     worksheet.write(row_id,0, None, table_data_cell_format)
-    worksheet.write(row_id,1,"{0} Payment for Total in (Kyat) ({1}%)".format(invoice_list['paymenttype'],str(invoice_list['payments'])), workbook.add_format({'align': 'left','border':1}))
+    worksheet.write(row_id,1,"{0} Payment for Total in (Kyat) ({1}%)".format(invoice_list['paymenttype'].capitalize(),str(invoice_list['payments'])), workbook.add_format({'align': 'left','border':1}))
     worksheet.write(row_id,2, None, table_data_cell_format)
     worksheet.write(row_id,3, None, table_data_cell_format)
     first_payment = int(math.ceil((total_amount*invoice_list['payments'])/100.0))
@@ -832,7 +835,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     row_id += 1
 
     col_row_num = rownumber_to_columnstring(row_id+1)
-    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"(Kyat: {0})".format(p.number_to_words(152030)), workbook.add_format({'align': 'left','bold':"True"}))
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"(Kyat: {0})".format(p.number_to_words(first_payment)), workbook.add_format({'align': 'left','bold':"True"}))
     col_row_num += 1
     d = {"<p>":"","</p>":""}
     footer_text = replace_all(payment['footer'], d)
@@ -853,64 +856,18 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     col_row_num += 1
     worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),header['createdby'], workbook.add_format({'align': 'left'}))
     col_row_num += 1
-    # #Extra Header
-    # col_row_num = rownumber_to_columnstring(row_id)
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),'Price Validity       :    {0}    '.format(unit['validity']), merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),'Payment Term     :    {0}'.format(unit['paymentterm']), merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),'Delivery date      :    {0}'.format(unit['delivery']), merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),'Drawing              :    {0}'.format(unit['drawing']), merge_format)
-    # col_row_num += 1
 
-    # """footer text start"""
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),None, merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),None, merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),None, merge_format)
-    # col_row_num += 1
-    # d = {"<h3>":"","</h3>":"\n","<p>":"","</p>":""}
-    # footer_text = replace_all(unit['footer'], d)
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num), footer_text, merge_format)
-    # col_row_num += 1
-
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),None, merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),None, merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"With Regard,", merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),None, merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),None, merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),None, merge_format)
-    # col_row_num += 1
-
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num), "-------------------------------", merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num), "Yan Tun (09-400686491/09-451162999)", merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num), "Sale & Marketing Manager", merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num), "MPEC", merge_format)
-    # col_row_num += 1
-    # worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num), "ZPW", merge_format)
-    # col_row_num += 1
-
-    # """footer text end"""
-
-    # """Start Data Table"""
-    # panels = unit['panels']
-    # panels.sort(key=lambda item: item.get("name"))
-    # print("gg", panels)
     row_id = columnstring_to_rownumber(col_row_num)
+    loop_count = 1
     for panel in body_obj:
         #table_body_data = [x for x in body_obj if x["id"] == panel["id"] != None][0]
         table_body_data = panel
-        #worksheet.write(row_id,0,panel['name'], workbook.add_format({'bold': True,'align':'center'}))
+        row_id += 1
+        col_row_num = rownumber_to_columnstring(row_id+1)
+        worksheet.merge_range('A{}:E{}'.format(col_row_num,col_row_num),'{0}. {1}'.format(loop_count,table_body_data['subject']), workbook.add_format({'bold': True,'border': 1, 'align':'left'}))
+        row_id = columnstring_to_rownumber(col_row_num)
+        loop_count += 1
+
         row_id += 1
         """sheet column name level start"""
         worksheet.write(row_id,0,'No.', workbook.add_format({'bold': True,'border': 1, 'align':'center'}))
@@ -934,6 +891,14 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
                 row_data['height'],row_data['width'],row_data['depth']['name'],row_data['type'],
                 row_data['material'],row_data['paint'],row_data['colour'],row_data['standard']
                 )
+            # bold = workbook.add_format({'bold': True, 'underline':True})
+            # col_row_num = rownumber_to_columnstring(row_id)
+            # worksheet.write_rich_string(
+            #     'B{}:E{}'.format(col_row_num,col_row_num),
+            #     'aa',
+            #     bold,"Panel Enclosure"
+            # )
+            # row_id = columnstring_to_rownumber(col_row_num)                
             worksheet.write(row_id,1, PED,workbook.add_format({'border': 1}))
             worksheet.write(row_id,2, "{0}{1}".format(unit, "Unit"),  workbook.add_format({'border': 1,'align':'center'}))
             worksheet.write(row_id,3, row_data['totalwithp'],cell_number_format)
