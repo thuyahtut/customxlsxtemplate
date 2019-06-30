@@ -824,10 +824,10 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
 
     """first Payment for Total in (Kyat) (34%)"""
     worksheet.write(row_id,0, None, table_data_cell_format)
-    worksheet.write(row_id,1,"first Payment for Total in (Kyat) (34%)", workbook.add_format({'align': 'left','border':1}))
+    worksheet.write(row_id,1,"{0} Payment for Total in (Kyat) ({1}%)".format(invoice_list['paymenttype'],str(invoice_list['payments'])), workbook.add_format({'align': 'left','border':1}))
     worksheet.write(row_id,2, None, table_data_cell_format)
     worksheet.write(row_id,3, None, table_data_cell_format)
-    first_payment = int(math.ceil((total_amount*34)/100.0))
+    first_payment = int(math.ceil((total_amount*invoice_list['payments'])/100.0))
     worksheet.write(row_id,4, first_payment, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
     row_id += 1
 
