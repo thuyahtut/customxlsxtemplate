@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 import json
 import inflect
+import math
 def rownumber_to_columnstring(n):
     return (n + 1)
 def columnstring_to_rownumber(n):
@@ -700,34 +701,34 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     merge_format = workbook.add_format({'align': 'left'})
     col_row_num = rownumber_to_columnstring(row_id)
     worksheet.merge_range('A1:E1',"INVOICE", workbook.add_format({'align': 'center'}))
-    worksheet.merge_range('A3:B5',"To.\n{0}".format(header['companyname']), workbook.add_format({'valign': 'left'}))
-    worksheet.write('C3',"Date", workbook.add_format({'valign': 'left'}))
-    worksheet.write('D3',payment['invoice_date'], workbook.add_format({'valign': 'left'}))
-    worksheet.write('C4',"Your Ref: No", workbook.add_format({'valign': 'left'}))
-    worksheet.write('D4',"Order by ".format(header['customer']), workbook.add_format({'valign': 'left'}))
-    worksheet.write('C5',"Our Ref: No", workbook.add_format({'valign': 'left'}))
-    worksheet.write('D5',payment['invNo'], workbook.add_format({'valign': 'left'}))
+    worksheet.merge_range('A3:B5',"To.\n{0}".format(header['companyname']), workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('C3',"Date", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D3',"payment['invoice_date']", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('C4',"Your Ref: No", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D4',"Order by ".format(header['customer']), workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('C5',"Our Ref: No", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D5',"payment['invNo']", workbook.add_format({'valign': 'left', 'border':1}))
 
-    worksheet.write('A6',"Att", workbook.add_format({'valign': 'left'}))
-    worksheet.write('B6',"-", workbook.add_format({'valign': 'left'}))
-    worksheet.write('C6',"Subject", workbook.add_format({'valign': 'left'}))
-    worksheet.write('D6',"Our Ref: No", workbook.add_format({'valign': 'left'}))
+    worksheet.write('A6',"Att", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('B6',"-", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('C6',"Subject", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D6',"Our Ref: No", workbook.add_format({'valign': 'left', 'border':1}))
 
 
-    d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":"", "[#payment#]": "{0} Payment".format(payment['paymenttype'])}
+    d = {"<h3>Dear Sir,</h3>":"","<p>":"","</p>":"", "[#payment#]": "{0} Payment".format("payment['paymenttype']")}
     head_text = replace_all(payment['header'], d)
-    worksheet.merge_range('A7:E7',"Dear Sir,", workbook.add_format({'bold': True}))
-    worksheet.merge_range('A8:E8',head_text, merge_format)
+    worksheet.merge_range('A8:E8',"Dear Sir,", workbook.add_format({'bold': True}))
+    worksheet.merge_range('A9:E9',head_text, merge_format)
 
     table_header_cell_format = workbook.add_format({'align': 'center','border':1})
-    worksheet.write(8,0,"No.", table_header_cell_format)
-    worksheet.write(8,1,"Description", table_header_cell_format)
-    worksheet.write(8,2,"Qty.", table_header_cell_format)
-    worksheet.write(8,3,"Price", table_header_cell_format)
-    worksheet.write(8,4,"Amount", table_header_cell_format)
+    worksheet.write(10,0,"No.", table_header_cell_format)
+    worksheet.write(10,1,"Description", table_header_cell_format)
+    worksheet.write(10,2,"Qty.", table_header_cell_format)
+    worksheet.write(10,3,"Price", table_header_cell_format)
+    worksheet.write(10,4,"Amount", table_header_cell_format)
 
     table_data_cell_format = workbook.add_format({'align': 'center','border':1})
-    row_id = 9
+    row_id = 11
     table_col_num = 1
     total_units = 0
     total_amount = 0
@@ -748,21 +749,82 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     u = "Units" if total_units > 1 else "Unit"
     worksheet.write(row_id,0, None, table_data_cell_format)
     worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
+    worksheet.write(row_id,2, None, table_data_cell_format)
+    worksheet.write(row_id,3, None, table_data_cell_format)
+    worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+    row_id += 1
+
+    """ Discount """
+    if "discount" in payment and payment['discount'] > 0:
+        # worksheet.write_rich_string(
+        # 'A9:E9',
+        # 'Subject : ',
+        # bold,unit['subject']
+        # )
+        discount = int(math.ceil((total_amount * payment['discount'] )/100.0))
+        worksheet.write(row_id,0,None, table_data_cell_format)
+        worksheet.write(row_id,1,"Discount ({0}%)".format(payment['discount']), workbook.add_format({'align': 'left','border':1}))
+        worksheet.write(row_id,2,None, table_data_cell_format)
+        worksheet.write(row_id,3,None, table_data_cell_format)
+        worksheet.write(row_id,4,"(-){0}".format("{:,}".format(discount)), workbook.add_format({'align': 'right','border':1}))
+        total_amount = total_amount - discount
+        row_id += 1
+
+        worksheet.write(row_id,0, None, table_data_cell_format)
+        worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
+        worksheet.write(row_id,2, None, table_data_cell_format)
+        worksheet.write(row_id,3, None, table_data_cell_format)
+        worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+        row_id += 1
+    """ Commercial Tax """
+    if "tax" in payment and payment['tax'] > 0:
+        commercial_tax = int(math.ceil((total_amount * payment['tax'] )/100.0))
+        worksheet.write(row_id,0,None, table_data_cell_format)
+        worksheet.write(row_id,1,"Commercial Tax ({0}%)".format(payment['tax']), workbook.add_format({'align': 'left','border':1}))
+        worksheet.write(row_id,2,None, table_data_cell_format)
+        worksheet.write(row_id,3,None, table_data_cell_format)
+        worksheet.write(row_id,4,"(+){0}".format("{:,}".format(commercial_tax)), workbook.add_format({'align': 'right','border':1}))
+        total_amount = total_amount + commercial_tax
+        row_id += 1
+
+        worksheet.write(row_id,0, None, table_data_cell_format)
+        worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
+        worksheet.write(row_id,2, None, table_data_cell_format)
+        worksheet.write(row_id,3, None, table_data_cell_format)
+        worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+        row_id += 1
+
+    """ Special Discount"""
+    if "manual_discount" in payment and payment['manual_discount'] > 0:
+        manual_discount = payment['manual_discount']
+        worksheet.write(row_id,0,None, table_data_cell_format)
+        worksheet.write(row_id,1,"Special Discount", workbook.add_format({'align': 'left','border':1}))
+        worksheet.write(row_id,2,None, table_data_cell_format)
+        worksheet.write(row_id,3,None, table_data_cell_format)
+        worksheet.write(row_id,4,"(-){0}".format("{:,}".format(manual_discount)), workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+        total_amount = total_amount - manual_discount
+        row_id += 1
+
+    #Summary Row
+    u = "Units" if total_units > 1 else "Unit"
+    worksheet.write(row_id,0, None, table_data_cell_format)
+    worksheet.write(row_id,1,"Total in (Kyat)", workbook.add_format({'align': 'left','border':1}))
     worksheet.write(row_id,2, "{0}{1}".format(total_units, u), table_data_cell_format)
     worksheet.write(row_id,3, None, table_data_cell_format)
     worksheet.write(row_id,4, total_amount, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
     row_id += 1
-    worksheet.write(row_id,0,None, table_data_cell_format)
-    worksheet.write(row_id,1,"first Payment for Total in (Kyat) (20%)", workbook.add_format({'align': 'left','border':1}))
-    worksheet.write(row_id,2,None, table_data_cell_format)
-    worksheet.write(row_id,3,None, table_data_cell_format)
-    first_payment = (total_amount * 20)/100
-    print('first_payment',first_payment)
-    worksheet.write(row_id,4,first_payment, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
+
+    """first Payment for Total in (Kyat) (34%)"""
+    worksheet.write(row_id,0, None, table_data_cell_format)
+    worksheet.write(row_id,1,"first Payment for Total in (Kyat) (34%)", workbook.add_format({'align': 'left','border':1}))
+    worksheet.write(row_id,2, None, table_data_cell_format)
+    worksheet.write(row_id,3, None, table_data_cell_format)
+    first_payment = int(math.ceil((total_amount*34)/100.0))
+    worksheet.write(row_id,4, first_payment, workbook.add_format({'align': 'right','border':1, 'num_format': '#,##0'}))
     row_id += 1
 
-    col_row_num = rownumber_to_columnstring(row_id)
-    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"(Kyat: {0})".format(p.number_to_words(first_payment)), workbook.add_format({'align': 'left','bold':"True"}))
+    col_row_num = rownumber_to_columnstring(row_id+1)
+    worksheet.merge_range('A{}:E{}'.format(col_row_num, col_row_num),"(Kyat: {0})".format(p.number_to_words(152030)), workbook.add_format({'align': 'left','bold':"True"}))
     col_row_num += 1
     d = {"<p>":"","</p>":""}
     footer_text = replace_all(payment['footer'], d)
@@ -854,7 +916,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
         number_col_bold = workbook.add_format({'bold': True,'border': 1,'align':'center'})
         cell_number_format = workbook.add_format({'bold':True,'border': 1,'num_format': '#,##0'})
         """Enclosure Start"""
-        if "enclosure" in table_body_data:
+        if "enclosure" in table_body_data and table_body_data['enclosure']['totalwithp'] > 0:
             unit = 1
             row_data = table_body_data['enclosure']
             worksheet.write(row_id,0, '{0}{1}'.format(num_column + 1,'.'), number_col_bold)
@@ -872,7 +934,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             row_id = row_id + 1
         """Enclosure End""" 
 
-        if "busbarfab" in table_body_data:
+        if "busbarfab" in table_body_data and table_body_data['busbarfab']['totalwithp'] > 0:
             unit = 1
             row_data = table_body_data['busbarfab']
             worksheet.write(row_id,0, '{0}{1}'.format(num_column + 1,'.'), number_col_bold)
@@ -884,7 +946,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             row_id = row_id + 1
 
         """BusBar Start"""
-        if "busbar" in table_body_data:
+        if "busbar" in table_body_data and int(float(table_body_data['busbar']['totalwithp'])) > 0:
             unit = 1
             row_data = table_body_data['busbar']
             worksheet.write(row_id,0, '{0}{1}'.format(num_column + 1,'A.'), number_col_bold)
@@ -903,7 +965,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             num_column = num_column + 1
             row_id = row_id + 1
 
-        if "cableandlug" in table_body_data and  table_body_data['cableandlug']['totalwithp'] > 0:
+        if "cableandlug" in table_body_data and  int(float(table_body_data['cableandlug']['totalwithp'])) > 0:
             unit = 1
             cell_format = workbook.add_format({'bold':True,'border': 2})
             row_data = table_body_data['cableandlug']
@@ -915,7 +977,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             num_column = num_column + 1
             row_id = row_id + 1    
         
-        if "insulator" in table_body_data and table_body_data['insulator']['totalwithp'] > 0:
+        if "insulator" in table_body_data and int(float(table_body_data['insulator']['totalwithp'])) > 0:
             unit = 1
             cell_format = workbook.add_format({'bold':True,'border': 2})
             row_data = table_body_data['insulator']
@@ -934,7 +996,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             num_column = num_column + 1
             row_id = row_id + 1
 
-        if "metering" in table_body_data and table_body_data['metering']['totalwithp'] > 0:
+        if "metering" in table_body_data and int(float(table_body_data['metering']['totalwithp'])) > 0:
             unit = 1
             cell_format = workbook.add_format({'bold':True,'border': 2})
             row_data = table_body_data['metering']
@@ -954,7 +1016,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             num_column = num_column + 1
             row_id = row_id + 1   
 
-        if "protection" in table_body_data and table_body_data['protection']['totalwithp'] > 0:
+        if "protection" in table_body_data and int(float(table_body_data['protection']['totalwithp'])) > 0:
             unit = 1
             cell_format = workbook.add_format({'bold':True,'border': 2})
             row_data = table_body_data['protection']
@@ -973,7 +1035,8 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             num_column = num_column + 1
             row_id = row_id + 1 
 
-        if "pricelist" in table_body_data and table_body_data['pricelist']['totalwithp'] > 0:
+        if "pricelist" in table_body_data and int(float(table_body_data['pricelist']['totalwithp'])) > 0:
+            print("pricelist")
             unit = 1
             cell_format = workbook.add_format({'bold':True,'border': 2})
             row_data = table_body_data['pricelist']
@@ -997,7 +1060,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             num_column = num_column + 1
             row_id = row_id + 1
 
-        if "extrapricelist" in table_body_data and table_body_data['extrapricelist']['totalwithp'] > 0:
+        if "extrapricelist" in table_body_data and int(float(table_body_data['extrapricelist']['totalwithp'])) > 0:
             unit = 1
             cell_format = workbook.add_format({'bold':True,'border': 2})
             row_data = table_body_data['extrapricelist']
@@ -1021,7 +1084,8 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             num_column = num_column + 1
             row_id = row_id + 1
 
-        if "extraonepricelist" in table_body_data and table_body_data['extraonepricelist']['totalwithp'] > 0:
+        if "extraonepricelist" in table_body_data and int(float(table_body_data['extraonepricelist']['totalwithp'])) > 0:
+            print("extraonepricelist")
             unit = 1
             cell_format = workbook.add_format({'bold':True,'border': 2})
             row_data = table_body_data['extraonepricelist']
@@ -1045,7 +1109,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
             num_column = num_column + 1
             row_id = row_id + 1                 
         
-        if "extratwopricelist" in table_body_data and table_body_data['extratwopricelist']['totalwithp'] > 0:
+        if "extratwopricelist" in table_body_data and int(float(table_body_data['extratwopricelist']['totalwithp'])) > 0:
             unit = 1
             cell_format = workbook.add_format({'bold':True,'border': 2})
             row_data = table_body_data['extratwopricelist']

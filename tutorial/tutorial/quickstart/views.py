@@ -27,29 +27,29 @@ class InvoiceView(APIView):
         false = False
         true = True
         """HEADER"""
-        with open('/home/thuya/OUTSOURCE/mpec/invoice/header.json', 'r') as header_file:
+        with open('/home/thuya/OUTSOURCE/customxlsxtemplate/tutorial/sample/header.json', 'r') as header_file:
             header_data=header_file.read()
 
         """BODY"""
         header_obj = json.loads(header_data)  
-        with open('/home/thuya/OUTSOURCE/mpec/invoice/body.json', 'r') as body_file:
+        with open('/home/thuya/OUTSOURCE/customxlsxtemplate/tutorial/sample/body.json', 'r') as body_file:
             body_data=body_file.read()
         body_obj = json.loads(body_data)  
 
         """CURRENCY"""
-        with open('/home/thuya/OUTSOURCE/mpec/invoice/currency.json', 'r') as body_file:
+        with open('/home/thuya/OUTSOURCE/customxlsxtemplate/tutorial/sample/currency.json', 'r') as body_file:
             currency_data=body_file.read()
         currency_obj = json.loads(currency_data)
 
 
         """PAYMENT"""
-        with open('/home/thuya/OUTSOURCE/mpec/invoice/payment.json', 'r') as body_file:
+        with open('/home/thuya/OUTSOURCE/customxlsxtemplate/tutorial/sample/payment.json', 'r') as body_file:
             payment_data=body_file.read()
         payment_obj = json.loads(payment_data)
 
 
         """SIGNATURE"""
-        with open('/home/thuya/OUTSOURCE/mpec/invoice/signature.json', 'r') as body_file:
+        with open('/home/thuya/OUTSOURCE/customxlsxtemplate/tutorial/sample/signature.json', 'r') as body_file:
             signature_data=body_file.read()
         signature_obj = json.loads(signature_data)  
 

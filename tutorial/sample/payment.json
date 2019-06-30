@@ -1,1 +1,42 @@
-[{"id":234,"quotationid_calculation_id":441,"qNo":"q1","blank_allow":false,"subject":"sub1","currency":"mm","panels":[{"id":1453,"name":"DB-Ext-LTG","qty":1,"seqid":1},{"id":1454,"name":"DB-1A","qty":1,"seqid":2}],"quotation_to_invoice_date":"2019-03-30","validity":"20 days from the date of quotation.","delivery":"Within 25 days after agreement","paymentterm":"50% on agreement date, 50% delivery date.","installation":"Will be show on schedule","commissioning":"Will be show on schedule","drawing":"Panel will be made as attach drawing number","others":"Warranty, Training and Penalties(According to further discussion).","remark":"Price of Power monitoring, ideally itemized by PDP will be submit after we know detail information.","signatureid":2,"tax":5,"header":"<h3>Dear Sir,</h3><p>Please find the following price quotation for above subject per your requested.</p>","footer":"<p>Should you require any further information, please do not hesitate to contact us. We will assure you of our best services and attention all the time.</p>","paymenttext":"","created_date":"2019-06-14","update_by":"po","discount":20,"manual_discount":3000}]
+[
+    {
+        "id": 234,
+        "quotationid_calculation_id": 441,
+        "qNo": "q1",
+        "blank_allow": false,
+        "subject": "sub1",
+        "currency": "mm",
+        "panels": [
+            {
+                "id": 1453,
+                "name": "DB-Ext-LTG",
+                "qty": 1,
+                "seqid": 1
+            },
+            {
+                "id": 1454,
+                "name": "DB-1A",
+                "qty": 1,
+                "seqid": 2
+            }
+        ],
+        "quotation_to_invoice_date": "2019-03-30",
+        "validity": "20 days from the date of quotation.",
+        "delivery": "Within 25 days after agreement",
+        "paymentterm": "50% on agreement date, 50% delivery date.",
+        "installation": "Will be show on schedule",
+        "commissioning": "Will be show on schedule",
+        "drawing": "Panel will be made as attach drawing number",
+        "others": "Warranty, Training and Penalties(According to further discussion).",
+        "remark": "Price of Power monitoring, ideally itemized by PDP will be submit after we know detail information.",
+        "signatureid": 2,
+        "tax": 5,
+        "header": "<h3>Dear Sir,</h3><p>Please find the following price quotation for above subject per your requested.</p>",
+        "footer": "<p>Should you require any further information, please do not hesitate to contact us. We will assure you of our best services and attention all the time.</p>",
+        "paymenttext": "",
+        "created_date": "2019-06-14",
+        "update_by": "po",
+        "discount": 20,
+        "manual_discount": 3000
+    }
+]
