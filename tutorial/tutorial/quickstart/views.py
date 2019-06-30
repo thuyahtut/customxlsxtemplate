@@ -53,7 +53,12 @@ class InvoiceView(APIView):
             signature_data=body_file.read()
         signature_obj = json.loads(signature_data)  
 
-        file_path = invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_obj)
+        """INVOICE LIST"""
+        with open('/home/thuya/OUTSOURCE/customxlsxtemplate/tutorial/sample/invoice_list.json', 'r') as body_file:
+            invoice_list_data=body_file.read()
+        invoice_list_obj = json.loads(invoice_list_data) 
+
+        file_path = invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_obj,invoice_list_obj)
         print('file_path',file_path)
         with open(file_path, 'r') as fh:
             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")

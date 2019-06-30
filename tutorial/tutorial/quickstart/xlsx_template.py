@@ -688,10 +688,11 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
     file_path = '{0}.xlsx'.format(filename)
     return file_path
 
-def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_obj):
+def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_obj,invoice_list_obj):
     p = inflect.engine()
     header = header_obj[0]
     payment = payment_obj[0]
+    invoice_list = invoice_list_obj[0]
     #unit = unit_obj[0]
     today = datetime.today().strftime('%d-%B-%y')
     filename = '/home/thuya/OUTSOURCE/test/invoice_{0}'.format(datetime.now())
@@ -703,11 +704,11 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     worksheet.merge_range('A1:E1',"INVOICE", workbook.add_format({'align': 'center'}))
     worksheet.merge_range('A3:B5',"To.\n{0}".format(header['companyname']), workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('C3',"Date", workbook.add_format({'valign': 'left', 'border':1}))
-    worksheet.write('D3',"payment['invoice_date']", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D3', invoice_list['invoice_date'], workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('C4',"Your Ref: No", workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('D4',"Order by ".format(header['customer']), workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('C5',"Our Ref: No", workbook.add_format({'valign': 'left', 'border':1}))
-    worksheet.write('D5',"payment['invNo']", workbook.add_format({'valign': 'left', 'border':1}))
+    worksheet.write('D5',invoice_list['invNo'], workbook.add_format({'valign': 'left', 'border':1}))
 
     worksheet.write('A6',"Att", workbook.add_format({'valign': 'left', 'border':1}))
     worksheet.write('B6',"-", workbook.add_format({'valign': 'left', 'border':1}))
