@@ -19,7 +19,7 @@ def replace_all(text, dic):
 def custom_xlsx_export(header_obj,body_obj):
     obj = body_obj 
     today = datetime.today().strftime('%d-%B-%y')
-    filename = '/home/thuya/OUTSOURCE/test/filename_body_{0}'.format(datetime.now())
+    filename = '/root/xlsxfiles/filename_body_{0}'.format(datetime.now())
     workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))
     worksheet1 = workbook.add_worksheet()
     row_id = 0
@@ -306,7 +306,7 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
     header = header_obj[0]
     unit = unit_obj[0]
     today = datetime.today().strftime('%d-%B-%y')
-    filename = '/home/thuya/OUTSOURCE/test/quotation_{0}'.format(datetime.now())
+    filename = '/root/xlsxfiles/quotation_{0}'.format(datetime.now())
     workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))
     worksheet = workbook.add_worksheet()
 
@@ -695,7 +695,7 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     invoice_list = invoice_list_obj[0]
     #unit = unit_obj[0]
     today = datetime.today().strftime('%d-%B-%y')
-    filename = '/home/thuya/OUTSOURCE/test/invoice_{0}'.format(datetime.now())
+    filename = '/root/xlsxfiles/invoice_{0}'.format(datetime.now())
     workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))    
     worksheet = workbook.add_worksheet()
     format = workbook.add_format()
