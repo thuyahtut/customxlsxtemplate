@@ -22,6 +22,8 @@ def custom_xlsx_export(header_obj,body_obj):
     filename = '/root/xlsxfiles/filename_body_{0}'.format(datetime.now())
     workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))
     worksheet1 = workbook.add_worksheet()
+    worksheet.set_portrait()
+    worksheet.fit_to_pages(1,0)
     row_id = 0
     for sheet_index in obj:
         json_data = sheet_index
@@ -309,7 +311,8 @@ def quotation_xlsx_export(header_obj,unit_obj,body_obj):
     filename = '/root/xlsxfiles/quotation_{0}'.format(datetime.now())
     workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))
     worksheet = workbook.add_worksheet()
-
+    worksheet.set_portrait()
+    worksheet.fit_to_pages(1,0)
     bold = workbook.add_format({'bold': True, 'underline':True})
     merge_format = workbook.add_format({'align': 'left'})
     worksheet.merge_range('A1:E1',header['qdate'], merge_format)
@@ -698,6 +701,8 @@ def invoice_xlsx_export(header_obj,body_obj,currency_obj,payment_obj,signature_o
     filename = '/root/xlsxfiles/invoice_{0}'.format(datetime.now())
     workbook   = xlsxwriter.Workbook('{0}.xlsx'.format(filename))    
     worksheet = workbook.add_worksheet()
+    worksheet.set_portrait()
+    worksheet.fit_to_pages(1,0)
     format = workbook.add_format()
     format.set_font_name('Times New Roman')
     row_id = 20
